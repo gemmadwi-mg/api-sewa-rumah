@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\PublicPropertyController;
 use App\Http\Controllers\Api\V1\Owner\BookingController as OwnerBookingController;
 use App\Http\Controllers\Api\V1\Owner\PropertyController as OwnerPropertyController;
+use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\Tenant\BookingController as TenantBookingController;
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
@@ -21,13 +22,23 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         });
     });
 
-    // Public property routes (no auth required)
+    // Public property routes
     Route::prefix('properties')->name('properties.')->group(function () {
         Route::get('/', [PublicPropertyController::class, 'index'])->name('index');
         Route::get('/search', [PublicPropertyController::class, 'search'])->name('search');
         Route::get('/cities', [PublicPropertyController::class, 'cities'])->name('cities');
         Route::get('/{id}', [PublicPropertyController::class, 'show'])->name('show');
+
+        // Reviews for property (public)
+        Route::get('/{propertyId}/reviews', [ReviewController::class, 'index'])->name('reviews.index');
     });
+
+    // Review creation (tenant only)
+    Route::post('reviews', [ReviewController::class, 'store'])
+        ->middleware(['auth:sanctum', 'role:tenant'])
+        ->name('reviews.store');
+
+    // ... rest of routes ...
 
     // Di dalam group owner
     Route::prefix('owner')->name('owner.')->middleware(['auth:sanctum', 'role:owner'])->group(function () {
